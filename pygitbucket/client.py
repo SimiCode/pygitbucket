@@ -125,7 +125,30 @@ class Client:
             self.get_repository_pipelines(repository_slug, pages)["values"]
             + self.get_repository_pipelines(repository_slug, pages - 1)["values"]
         )
-        return latest_pipelines[-10:]
+        return latest_pipelines
+
+    # UNDER TESTING !!
+    def get_last_pipeline(self, repository_slug, branch=None, params=None):
+        """Returns the object describing this repository's latest pipelines.
+
+        Args:
+            repository_slug:
+            params:
+
+        Returns:
+
+        """
+        default_response = self.get_repository_pipelines(repository_slug)
+        num_pipelines = default_response["size"]
+        pages = math.ceil(num_pipelines / 10)
+        last_pipelines = self.get_repository_pipelines(repository_slug, pages)["values"]
+        if branch:
+            last_pipelines = [
+                value for value in last_pipelines
+                if value['target']['ref_name'] == branch
+            ]
+        last_pipelines.sort(key=lambda x: x['created_on'])
+        return last_pipelines[-1]
 
     def get_repository_branches(self, repository_slug, params=None):
         return self._get(
